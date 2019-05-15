@@ -10,7 +10,7 @@ import UIKit
 
 class PostsTableViewController : UITableViewController {
     
-    var numberOfPosts : Int = 0
+    var numberOfPosts : Int     = 0
     var currentlySelected : Int = -1
     var posts : [Post] = []
     
@@ -45,13 +45,14 @@ class PostsTableViewController : UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellIdentifier", for: indexPath)
-        cell.textLabel?.text = posts[indexPath.row].title
+        cell.textLabel?.text = String(posts[indexPath.row].id)+": "+posts[indexPath.row].title
         cell.detailTextLabel?.text = posts[indexPath.row].body
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         currentlySelected = indexPath.row
+        tableView.deselectRow(at: indexPath, animated: true)
         //perform the segue
         performSegue(withIdentifier: "toDetailView", sender: self)
     }
@@ -76,8 +77,6 @@ extension PostsTableViewController : PostsDelegate {
         posts.remove(at: index)
         tableView.reloadData()
     }
-    
-    
     func setNumberOfPosts(number: Int) {
         numberOfPosts = number
     }

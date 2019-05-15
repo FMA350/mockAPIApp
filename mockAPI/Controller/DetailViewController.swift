@@ -11,8 +11,8 @@ import UIKit
 
 class DetailViewController : UIViewController {
     
-    var post : Post? = nil
-    var origin : PostsTableViewController? = nil
+    var post : Post!                       //Will always be passed
+    var origin : PostsTableViewController! //will always be initialized
     
     let scrollView : UIScrollView = {
         var sv = UIScrollView()
@@ -33,15 +33,17 @@ class DetailViewController : UIViewController {
         return t
     }()
     
-    let idText : UITextView = {
-        var id = UITextView()
-        id.isEditable = false
+    let idText : UITextField = {
+        var id = UITextField()
+        id.isEnabled = false
+        id.addTarget(self, action: #selector(onTextFieldChange(sender:)), for: .allEditingEvents)
         return id
     }()
     
-    let userIdText : UITextView = {
-        var userId = UITextView()
-        userId.isEditable = false
+    let userIdText : UITextField = {
+        var userId = UITextField()
+        userId.isEnabled = false
+        userId.addTarget(self, action: #selector(onTextFieldChange(sender:)), for: .allEditingEvents)
         return userId
     }()
     
@@ -54,8 +56,9 @@ class DetailViewController : UIViewController {
     
     let modifyButton : UIButton = {
         var mb = UIButton(type: .system)
+        mb.isSelected = false
         mb.setTitle("Modifiy", for: .normal)
-        mb.setTitle("Save Changes", for: .focused)
+        mb.setTitle("Save Changes", for: .selected)
         mb.backgroundColor = .yellow
         mb.addTarget(self, action: #selector(toggleModify), for: .touchUpInside)
         return mb
@@ -84,7 +87,7 @@ class DetailViewController : UIViewController {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(DetailViewController.dismissKeyboard)))
         addSubviews()
         setupConstraints()
-        setupTextValues()
+        loadTextValues()
         setupStackView()
     }
     
@@ -94,16 +97,18 @@ class DetailViewController : UIViewController {
     }
     
     
-    func setupTextValues(){
+    func loadTextValues(){
         guard let p = post else{
             return
         }
-        titleText.text = p.title.capitalized
+        titleText.text = p.title//.capitalized //justforfun
         idText.text = String(p.id)
-        titleText.delegate = self
-        userIdText.text = String(p.id)
+        userIdText.text = String(p.userId)
         bodyText.text = p.body
         
+        //reset backgrounds
+        idText.backgroundColor = .white
+        userIdText.backgroundColor = .white
     }
     
     func addSubviews(){
@@ -187,54 +192,59 @@ class DetailViewController : UIViewController {
         buttonStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, multiplier: 0.7).isActive = true
     }
     
+    @objc func onTextFieldChange(sender: UITextField){
+        guard let t = sender.text else{
+            sender.backgroundColor = .red
+            return
+        }
+        if Int(t) == nil {
+            sender.backgroundColor = .red
+        }
+        else {
+            sender.backgroundColor = .white
+        }
+    }
+    
     @objc func removePost(){
         guard let originGuarded = origin else{
             return
         }
-        origin?.removePost(index: originGuarded.currentlySelected)
-        //self.navigationController?.dismiss(animated: true, completion: nil)
+        origin.removePost(index: originGuarded.currentlySelected)
         self.navigationController?.popViewController(animated: true)
     }
     
     @objc func dismissKeyboard(){
-        print("dismissing")
         view.endEditing(true)
     }
     
     @objc func toggleModify(){
-        if titleText.isEditable == false{
+        modifyButton.isSelected.toggle()
+        if modifyButton.isSelected == true{
             removeButton.isEnabled = true
             titleText.isEditable = true
-            idText.isEditable = true
-            userIdText.isEditable = true
+            idText.isEnabled = true
+            userIdText.isEnabled = true
             bodyText.isEditable = true
-            
         }
         else{
             removeButton.isEnabled = false
             titleText.isEditable = false
-            idText.isEditable = false
-            userIdText.isEditable = false
+            idText.isEnabled = false
+            userIdText.isEnabled = false
             bodyText.isEditable = false
             savePost()
+            loadTextValues()
         }
     }
     
     func savePost(){
-        post?.title = titleText.text
-        post?.body = bodyText.text
-        var x : Int = Int(idText.text) ??  0
-        post?.id = Int(x)
-        x = Int(userIdText.text) ??  0
-        post?.userId = Int(x)
-
-        guard let postGuarded = post else{
-            return
-        }
-        guard let originGuarded = origin else{
-            return
-        }
-        origin?.changePost(p: postGuarded, index: originGuarded.currentlySelected)
+        post.title = titleText.text
+        post.body = bodyText.text
+        var x : Int = Int(idText.text!) ?? post.id
+        post.id = x
+        x = Int(userIdText.text!) ??  post.userId
+        post.userId = x
+        origin.changePost(p: post, index: origin.currentlySelected)
     }
 }
 

@@ -33,7 +33,7 @@ class ViewController: UIViewController {
         return lb
     }()
     
-    var textFieldValue : Int = 0
+    var numberOfPostsToLoad : Int = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,7 +88,7 @@ class ViewController: UIViewController {
             return
         }
         //else if value is acceptable
-        textFieldValue = value
+        numberOfPostsToLoad = value
         loadButton.isEnabled = true
         numericField.backgroundColor = .lightGray
     }
@@ -100,7 +100,7 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "toTableViewController" {
             let vc = segue.destination as! PostsDelegate
-            vc.setNumberOfPosts(number: textFieldValue)
+            vc.setNumberOfPosts(number: numberOfPostsToLoad)
             
         }
     }
